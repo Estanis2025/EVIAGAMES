@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Legends: Puzzle Quest</title>
+    <style>
+        :root {
+            --wood-dark: #3e2723;
+            --wood-light: #5d4037;
+            --gold-glow: #ffd700;
+            --success-border: #ffd700;
+        }
+
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Georgia', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-viewport {
+            position: relative;
+            width: 400px;
+            height: 700px;
+            background: #000;
+            border: 12px solid var(--wood-dark);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        #jungle-bg {
+            position: absolute;
+            inset: 0;
+            background: url('https://lh3.googleusercontent.com/d/14JQKUp-kS10zsRFP5pzudKOs835l32R0') center/cover;
+            opacity: 0.7;
+            z-index: 0;
+        }
+
+        #stats-bar {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #puzzle-board {
+            position: absolute;
+            top: 100px;
+            left: 40px;
+            width: 320px;
+            height: 480px;
+            background: rgba(0,0,0,0.4);
+            border: 4px solid var(--wood-light);
+            z-index: 1;
+        }
+
+        .slot {
+            position: absolute;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* PIEZAS: Imagen actualizada dinámicamente */
+        .piece {
+            position: absolute;
+            cursor: grab;
+            background-image: url('https://i.ibb.co/BHw79X4x/camello-de-las-dunas.png') !important;
+            background-size: 320px 480px;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.6);
+            z-index: 5;
+            touch-action: none;
+            transition: border 0.3s ease;
+        }
+
+        .piece.placed {
+            box-shadow: 0 0 10px var(--gold-glow);
+            border: 2px solid var(--success-border) !important;
+            cursor: default;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #start-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .logo-img {
+            width: 280px;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+            margin-bottom: 5px;
+        }
+
+        .animal-name {
+            font-size: 22pt;
+            letter-spacing: 4px;
+            color: #fff;
+            margin: 0 0 20px 0;
+            font-weight: bold;
+            text-shadow: 0 0 15px var(--gold-glow);
+        }
+
+        #victory-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(2px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .victory-card {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--gold-glow);
+            box-shadow: 0 0 30px rgba(0,0,0,1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #d35400, #e67e22);
+            border: none;
+            padding: 12px 25px;
+            color: white;
+            font-size: 14pt;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 220px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover { transform: scale(1.05); }
+        .btn-small { padding: 5px 15px; font-size: 10pt; width: auto; background: #5d4037; }
+
+        .music-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid var(--gold-glow);
+            color: var(--gold-glow);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-viewport">
+    <div id="jungle-bg"></div>
+
+    <div id="stats-bar">
+        <span>MOVS: <b id="moves">0</b></span>
+        <button class="btn btn-small" onclick="location.reload()">Inicio</button>
+        <span>TIEMPO: <b id="timer">00:00</b></span>
+    </div>
+
+    <div id="puzzle-board"></div>
+
+    <div id="start-screen">
+        <img src="https://lh3.googleusercontent.com/d/16kPOn6omfFbjglvpe-9Bv_DAiLq0VONy" class="logo-img" alt="Logo">
+        
+        <h2 class="animal-name">CAMELLO DE LAS DUNAS</h2>
+
+        <p style="color: #ccc; margin-bottom: 15px;">Selecciona dificultad:</p>
+        <button class="btn" onclick="startGame(4, 3)">Fácil (12 piezas)</button>
+        <button class="btn" onclick="startGame(6, 4)">Medio (24 piezas)</button>
+        <button class="btn" onclick="startGame(8, 6)">Difícil (48 piezas)</button>
+    </div>
+
+    <div id="victory-screen">
+        <div class="victory-card">
+            <h2 style="color: var(--gold-glow); margin: 0; font-size: 22pt;">¡FELICITACIONES!</h2>
+            <p style="margin: 15px 0; color: #ddd;">Completado en:</p>
+            <h1 id="final-time-display" style="margin: 10px 0; color: #fff; font-size: 30pt;">00:00</h1>
+            <p style="color: #aaa; margin-bottom: 20px;">Movimientos: <span id="final-moves-display">0</span></p>
+            <button class="btn" onclick="location.reload()">Menú Inicial</button>
+        </div>
+    </div>
+
+    <button class="music-btn" id="musicToggle" onclick="toggleMusic()">▶</button>
+</div>
+
+<audio id="bg-music" loop>
+    <source src="https://files.catbox.moe/qbh5p2.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    const board = document.getElementById('puzzle-board');
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('musicToggle');
+    
+    let rows, cols, pWidth, pHeight, moves = 0, placedCount = 0, startTime, timerInterval;
+
+    function toggleMusic() {
+        if (music.paused) { music.play(); musicBtn.innerText = "⏸"; }
+        else { music.pause(); musicBtn.innerText = "▶"; }
+    }
+
+    function startGame(r, c) {
+        rows = r; cols = c;
+        pWidth = 320 / cols;
+        pHeight = 480 / rows;
+        document.getElementById('start-screen').style.display = 'none';
+        music.volume = 0.4;
+        music.play().catch(() => {});
+        musicBtn.innerText = "⏸";
+        initBoard();
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function initBoard() {
+        board.innerHTML = '';
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.style.width = pWidth + 'px';
+                slot.style.height = pHeight + 'px';
+                slot.style.left = (c * pWidth) + 'px';
+                slot.style.top = (r * pHeight) + 'px';
+                board.appendChild(slot);
+
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.style.width = pWidth + 'px';
+                piece.style.height = pHeight + 'px';
+                piece.style.backgroundPosition = `-${c * pWidth}px -${r * pHeight}px`;
+                piece.style.left = (Math.random() * 260 + 20) + 'px';
+                piece.style.top = (Math.random() * 80 + 590) + 'px';
+                piece.style.transform = `rotate(${(Math.random() - 0.5) * 30}deg)`;
+
+                setupDrag(piece, r, c);
+                document.getElementById('game-viewport').appendChild(piece);
+            }
+        }
+    }
+
+    function setupDrag(el, targetRow, targetCol) {
+        let isDragging = false, startX, startY, origX, origY;
+        const onStart = (e) => {
+            if(el.classList.contains('placed')) return;
+            isDragging = true;
+            const t = e.touches ? e.touches[0] : e;
+            startX = t.clientX; startY = t.clientY;
+            origX = el.offsetLeft; origY = el.offsetTop;
+            el.style.zIndex = 1000;
+        };
+        const onMove = (e) => {
+            if (!isDragging) return;
+            const t = e.touches ? e.touches[0] : e;
+            el.style.left = (origX + (t.clientX - startX)) + 'px';
+            el.style.top = (origY + (t.clientY - startY)) + 'px';
+        };
+        const onEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const boardRect = board.getBoundingClientRect();
+            const targetX = boardRect.left + (targetCol * pWidth);
+            const targetY = boardRect.top + (targetRow * pHeight);
+            const elRect = el.getBoundingClientRect();
+            const dist = Math.sqrt(Math.pow(elRect.left - targetX, 2) + Math.pow(elRect.top - targetY, 2));
+
+            if (dist < 35) {
+                const viewRect = document.getElementById('game-viewport').getBoundingClientRect();
+                el.style.left = (targetX - viewRect.left) + 'px';
+                el.style.top = (targetY - viewRect.top) + 'px';
+                el.style.transform = 'rotate(0deg)';
+                el.classList.add('placed');
+                placedCount++;
+                document.getElementById('moves').innerText = ++moves;
+                if (placedCount === rows * cols) {
+                    clearInterval(timerInterval);
+                    document.getElementById('final-time-display').innerText = document.getElementById('timer').innerText;
+                    document.getElementById('final-moves-display').innerText = moves;
+                    setTimeout(() => { document.getElementById('victory-screen').style.display = 'flex'; }, 600);
+                }
+            } else { el.style.zIndex = 5; }
+        };
+        el.addEventListener('mousedown', onStart);
+        el.addEventListener('touchstart', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, {passive: false});
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+    }
+
+    function updateTimer() {
+        const sec = Math.floor((Date.now() - startTime) / 1000);
+        const m = Math.floor(sec/60).toString().padStart(2,'0');
+        const s = (sec%60).toString().padStart(2,'0');
+        document.getElementById('timer').innerText = `${m}:${s}`;
+    }
+</script>
+</body>
+</html>
