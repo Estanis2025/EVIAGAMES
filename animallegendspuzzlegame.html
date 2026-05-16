@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Legends - Puzzle Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #dfb76c;
+            --gold-bright: #ffd700;
+            --gold-dark: #8a6d3b;
+            --bg-dark: #070b12;
+            --text-light: #f0f4f8;
+            --ice-color: #8ec5fc;
+            --arena-color: #e65100;
+            --mystic-color: #ab47bc;
+            --hybrid-color: #26a69a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            background-image: radial-gradient(circle at 50% 30%, #101f38 0%, #05080f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        header {
+            width: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.5));
+            border-bottom: 2px solid var(--gold-dark);
+            position: relative;
+            z-index: 10;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 40px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .game-logo {
+            height: 65px;
+            width: auto;
+            filter: drop-shadow(0 2px 8px rgba(255,215,0,0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .game-logo:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .brand-text {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+            border-color: var(--gold);
+            background: rgba(223, 183, 108, 0.15);
+            box-shadow: 0 0 10px rgba(223, 183, 108, 0.3);
+        }
+
+        /* --- CENTRAL TITLE BANNER --- */
+        .logo-container {
+            text-align: center;
+            padding: 20px 10px 10px 10px;
+        }
+
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(to bottom, #fff 20%, var(--gold-bright) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8));
+            margin-bottom: 2px;
+        }
+
+        .game-subtitle {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-bright);
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+        }
+
+        /* --- MAIN INTERACTIVE CONTAINER --- */
+        .main-container {
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+            flex: 1;
+        }
+
+        @media (max-width: 1100px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- SIDEBAR & WORLD ACCORDION CARDS --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .world-card {
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .world-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135px, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.4) 100%);
+            z-index: 1;
+            transition: background 0.3s;
+        }
+
+        .world-card:hover, .world-card.active {
+            box-shadow: 0 0 18px rgba(255, 215, 0, 0.25);
+            border-color: var(--gold-bright);
+        }
+
+        .world-card.active::before {
+            background: linear-gradient(135px, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .card-hielo { background-image: url('https://images.unsplash.com/photo-1517783999520-f068d3434b89?q=80&w=400'); border-left: 6px solid var(--ice-color); }
+        .card-arena { background-image: url('https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=400'); border-left: 6px solid var(--arena-color); }
+        .card-mistico { background-image: url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=400'); border-left: 6px solid var(--mystic-color); }
+        .card-hibrido { background-image: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=400'); border-left: 6px solid var(--hybrid-color); }
+
+        .world-card-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .world-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .world-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.35rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .world-card.active .world-title {
+            color: var(--gold-bright);
+            text-shadow: 0 0 8px rgba(255,215,0,0.4);
+        }
+
+        .world-desc {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        .accordion-indicator {
+            font-size: 1rem;
+            color: var(--gold);
+            transition: transform 0.3s ease;
+        }
+
+        .world-card.active .accordion-indicator {
+            transform: rotate(180deg);
+            color: var(--gold-bright);
+        }
+
+        /* --- DROPDOWN MENUS (PUZZLE LISTS) --- */
+        .puzzle-list-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(4, 8, 15, 0.6);
+            border-radius: 0 0 6px 6px;
+        }
+
+        .world-card.active + .puzzle-list-container {
+            border: 1px solid rgba(223, 183, 108, 0.25);
+            border-top: none;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+
+        .puzzle-grid {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .btn-puzzle {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(223, 183, 108, 0.2);
+            border-radius: 4px;
+            padding: 11px 15px;
+            color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-puzzle:hover, .btn-puzzle.active {
+            background: rgba(223, 183, 108, 0.15);
+            color: #fff;
+            border-color: var(--gold-bright);
+            padding-left: 20px;
+        }
+
+        .btn-puzzle.active {
+            box-shadow: inset 4px 0 0 var(--gold-bright);
+            color: var(--gold-bright);
+            font-weight: 700;
+        }
+
+        .btn-puzzle::after {
+            content: '🧩';
+            font-size: 0.8rem;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        .btn-puzzle:hover::after, .btn-puzzle.active::after {
+            opacity: 1;
+        }
+
+        /* --- GAME VIEWPORT (PANTALLA) --- */
+        .game-viewport {
+            border: 3px solid var(--gold-dark);
+            border-radius: 8px;
+            background: #090e18;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 650px;
+        }
+
+        .viewport-header {
+            background: linear-gradient(to right, #050a12, #122038);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--gold-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-puzzle-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: var(--gold-bright);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .viewport-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-control {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--gold-dark);
+            color: #d0d0d0;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-control:hover {
+            background: var(--gold);
+            color: #05080f;
+            box-shadow: 0 0 8px rgba(223, 183, 108, 0.4);
+        }
+
+        .iframe-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .viewport-placeholder {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            background: radial-gradient(circle at center, #0f1c30 0%, #05080f 100%);
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        .placeholder-icon {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(223, 183, 108, 0.3));
+        }
+
+        .placeholder-text h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: var(--gold-bright);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .placeholder-text p {
+            max-width: 500px;
+            color: #b0c4de;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #03050a;
+            border-top: 2px solid var(--gold-dark);
+            padding: 18px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-banner-text {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="top-nav">
+            <div class="brand-container">
+                <img src="https://i.ibb.co/xSDP2nYw/logo-animal-legends-X.png" alt="Animal Legends Logo" class="game-logo">
+                <div class="brand-text">ANIMAL LEGENDS</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active">INICIO</a></li>
+                <li><a href="#">MUNDOS</a></li>
+                <li><a href="#">CARTAS</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="logo-container">
+        <h1 class="game-title">Animal Legends</h1>
+        <div class="game-subtitle">PUZZLE GAMES</div>
+    </div>
+
+    <main class="main-container">
+        
+        <div class="sidebar">
+            
+            <div class="world-card card-hielo active" onclick="toggleWorld(this, 'hielo')">
+                <div class="world-card-content">
+                    <div class="world-info">
+                        <h2 class="world-title">❄️ Mundo Hielo</h2>
+                        <p class="world-desc">Desafía tu mente en la tundra ártica</p>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+            </div>
+            <div class="puzzle-list-container" id="list-hielo" style="max-height: 400px;">
+                <div class="puzzle-grid">
+                    <button class="btn-puzzle" onclick="loadPuzzle('Búho Nival', 'https://estanis2025.github.io/EVIAGAMES/buho_nival.html', this)">Búho Nival</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Guardián Foca', 'https://estanis2025.github.io/EVIAGAMES/foca.html', this)">Guardián Foca</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Leopardo de las Nieves', 'https://estanis2025.github.io/EVIAGAMES/leopardo.html', this)">Leopardo de las Nieves</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Mamut', 'https://estanis2025.github.io/EVIAGAMES/mamut.html', this)">Mamut</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Oso Polar', 'https://estanis2025.github.io/EVIAGAMES/oso_polar.html', this)">Oso Polar</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Pingüino', 'https://estanis2025.github.io/EVIAGAMES/pinguino.html', this)">Pingüino</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Reno de Hielo', 'https://estanis2025.github.io/EVIAGAMES/reno.html', this)">Reno de Hielo</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Zorro Ártico', 'https://estanis2025.github.io/EVIAGAMES/zorro_artico.html', this)">Zorro Ártico</button>
+                </div>
+            </div>
+
+            <div class="world-card card-arena" onclick="toggleWorld(this, 'arena')">
+                <div class="world-card-content">
+                    <div class="world-info">
+                        <h2 class="world-title">☀️ Mundo Arena</h2>
+                        <p class="world-desc">Enfrenta las dunas y el sol colosal</p>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+            </div>
+            <div class="puzzle-list-container" id="list-arena">
+                <div class="puzzle-grid">
+                    <button class="btn-puzzle" onclick="loadPuzzle('Camello de las Dunas', 'https://estanis2025.github.io/EVIAGAMES/camello.html', this)">Camello de las Dunas</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Elefante Colosal', 'https://estanis2025.github.io/EVIAGAMES/elefante_arena.html', this)">Elefante Colosal</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Escorpión del Sol', 'https://estanis2025.github.io/EVIAGAMES/escorpion_arena', this)">Escorpión del Sol</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Halcón de Dunas', 'https://estanis2025.github.io/EVIAGAMES/halcon_arena.html', this)">Halcón de Dunas</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Jaguar Solar', 'https://estanis2025.github.io/EVIAGAMES/jaguar_arena.html', this)">Jaguar Solar</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('León Colosal', 'https://estanis2025.github.io/EVIAGAMES/leon_arena.html', this)">León Colosal</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Lobo de las Dunas', 'https://estanis2025.github.io/EVIAGAMES/lobo_arena.html', this)">Lobo de las Dunas</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Rinoceronte de Tormenta Solar', 'https://estanis2025.github.io/EVIAGAMES/rinoceronte_arena.html', this)">Rinoceronte de Tormenta</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Serpiente de las Arenas', 'https://estanis2025.github.io/EVIAGAMES/serpiente_arena.html', this)">Serpiente de las Arenas</button>
+                </div>
+            </div>
+
+            <div class="world-card card-mistico" onclick="toggleWorld(this, 'mistico')">
+                <div class="world-card-content">
+                    <div class="world-info">
+                        <h2 class="world-title">✨ Mundo Místico</h2>
+                        <p class="world-desc">Criaturas mitológicas ancestrales</p>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+            </div>
+            <div class="puzzle-list-container" id="list-mistico">
+                <div class="puzzle-grid">
+                    <button class="btn-puzzle" onclick="loadPuzzle('Caballo con Alas', 'https://estanis2025.github.io/EVIAGAMES/caballo_con_alas.html', this)">Caballo con Alas</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Ciervo de Cristal', 'https://estanis2025.github.io/EVIAGAMES/ciervo_de_cristal.html', this)">Ciervo de Cristal</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Dragón Celestial', 'https://estanis2025.github.io/EVIAGAMES/dragon_celestial.html', this)">Dragón Celestial</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Fénix Dorado', 'https://estanis2025.github.io/EVIAGAMES/fenix_dorado.html', this)">Fénix Dorado</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Grifo Real', 'https://estanis2025.github.io/EVIAGAMES/grifo.html', this)">Grifo Real</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Kraken Abisal', 'https://estanis2025.github.io/EVIAGAMES/kraken_abisal.html', this)">Kraken Abisal</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Pegaso Celestial', 'https://estanis2025.github.io/EVIAGAMES/pegaso_celestial.html', this)">Pegaso Celestial</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Zorro de Nueve Colas', 'https://estanis2025.github.io/EVIAGAMES/zorro_de_nueve_colas.html', this)">Zorro de Nueve Colas</button>
+                </div>
+            </div>
+
+            <div class="world-card card-hibrido" onclick="toggleWorld(this, 'hibrido')">
+                <div class="world-card-content">
+                    <div class="world-info">
+                        <h2 class="world-title">🧬 Mundo Híbrido</h2>
+                        <p class="world-desc">Maravillas genéticas adaptativas</p>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+            </div>
+            <div class="puzzle-list-container" id="list-hibrido">
+                <div class="puzzle-grid">
+                    <button class="btn-puzzle" onclick="loadPuzzle('Foca (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/foca.html', this)">Foca</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Leopardo de las Nieves (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/leopardo.html', this)">Leopardo de las Nieves</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Mamut (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/mamut.html', this)">Mamut</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Oso Polar (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/oso_polar.html', this)">Oso Polar</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Pingüino (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/pinguino.html', this)">Pingüino</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Reno (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/reno.html', this)">Reno</button>
+                    <button class="btn-puzzle" onclick="loadPuzzle('Zorro Ártico (Híbrido)', 'https://estanis2025.github.io/EVIAGAMES/zorro_artico.html', this)">Zorro Ártico</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="game-viewport">
+            <div class="viewport-header">
+                <div class="current-puzzle-title" id="puzzle-title">
+                    ⚔️ SELECCIONA UN PUZZLE DE LAS LISTAS
+                </div>
+                <div class="viewport-controls">
+                    <button class="btn-control" onclick="refreshIframe()">🔄 Reiniciar</button>
+                    <button class="btn-control" onclick="fullscreenIframe()">🖵 Pantalla Completa</button>
+                </div>
+            </div>
+            
+            <div class="iframe-wrapper">
+                <div class="viewport-placeholder" id="placeholder-view">
+                    <div class="placeholder-icon">🐾</div>
+                    <div class="placeholder-text">
+                        <h3>Animal Legends Arena</h3>
+                        <p>Despliega cualquiera de los 4 mundos del menú lateral, haz clic sobre el botón de un animal y su puzzle se cargará de inmediato en esta pantalla.</p>
+                    </div>
+                </div>
+                <iframe id="game-frame" src="about:blank" allowfullscreen></iframe>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="footer-banner-text">
+            CADA CARTA, UNA LEYENDA — CADA PUZZLE, UN DESAFÍO
+        </div>
+    </footer>
+
+    <script>
+        function toggleWorld(cardElement, worldId) {
+            document.querySelectorAll('.world-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.puzzle-list-container').forEach(list => list.style.maxHeight = null);
+
+            cardElement.classList.add('active');
+            const targetList = document.getElementById('list-' + worldId);
+            if (targetList) {
+                targetList.style.maxHeight = "400px";
+            }
+        }
+
+        function loadPuzzle(name, url, buttonElement) {
+            document.querySelectorAll('.btn-puzzle').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+
+            document.getElementById('puzzle-title').innerText = "🎮 JUGANDO: " + name.toUpperCase();
+            
+            const placeholder = document.getElementById('placeholder-view');
+            placeholder.style.opacity = "0";
+            setTimeout(() => {
+                placeholder.style.display = "none";
+            }, 300);
+
+            document.getElementById('game-frame').src = url;
+        }
+
+        function refreshIframe() {
+            const iframe = document.getElementById('game-frame');
+            if (iframe.src && iframe.src !== 'about:blank') {
+                iframe.src = iframe.src;
+            }
+        }
+
+        function fullscreenIframe() {
+            const iframe = document.getElementById('game-frame');
+            if (iframe.src && iframe.src !== 'about:blank') {
+                if (iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe.webkitRequestFullscreen) {
+                    iframe.webkitRequestFullscreen();
+                }
+            } else {
+                alert('Por favor, selecciona primero un puzzle para jugar en pantalla completa.');
+            }
+        }
+    </script>
+</body>
+</html>
