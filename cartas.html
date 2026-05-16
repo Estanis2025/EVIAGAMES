@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Legends - Full Game Edition</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #e94560; --secondary: #0f3460; --accent: #f1c40f; --bg: #1a1a2e;
+      --premium: #00d2ff; --whatsapp: #25D366;
+      --match-color: #2ecc71;
+    }
+    /* Temas de mundos */
+    .tema-hielo { --primary: #00d2ff; --secondary: #003366; --accent: #ade8f4; --bg: #03045e; --match-color: #00f2ff; }
+    .tema-mistico { --primary: #9b59b6; --secondary: #2c003e; --accent: #00ffcc; --bg: #12001c; --match-color: #f1c40f; }
+    .tema-arena { --primary: #d4a373; --secondary: #582f0e; --accent: #ffdd00; --bg: #331800; --match-color: #ff9d00; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg); color: #fff;
+      display: flex; flex-direction: column; align-items: center; 
+      min-height: 100vh; transition: background 0.5s ease;
+      overflow-x: hidden;
+    }
+
+    /* --- AUDIO --- */
+    .audio-global {
+      position: fixed; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.1);
+      padding: 10px 18px; border-radius: 50px; display: flex; align-items: center; gap: 12px;
+      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); z-index: 5000;
+    }
+    .visualizer { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+    .bar { width: 3px; background: var(--accent); height: 30%; transition: 0.2s; }
+    .animating .bar { animation: wave 0.6s infinite alternate; }
+    @keyframes wave { from { height: 30%; } to { height: 100%; } }
+
+    /* --- MENÚ --- */
+    .view-section { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; justify-content: center; }
+    #app { display: none; width: 100%; max-width: 1200px; }
+
+    .menu-inicio-card {
+      background: var(--secondary); padding: 2.5rem; border-radius: 30px;
+      border: 3px solid var(--primary); text-align: center; 
+      width: 95%; max-width: 480px; box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    .logo-inicio { max-width: 100%; max-height: 160px; margin-bottom: 1rem; filter: drop-shadow(0 0 10px var(--accent)); border-radius: 15px; }
+
+    .world-list { width: 100%; margin: 15px 0; }
+    .world {
+        width: 100%; padding: 16px; margin: 10px 0; border-radius: 15px;
+        text-align: center; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px;
+    }
+    .free { background: #28a745; color: white; border: 2px solid #1e7e34; }
+    .locked { background: #444; color: #aaa; border: 2px solid #555; }
+    .locked:hover { border-color: var(--accent); color: #fff; }
+
+    .btn-buy-premium {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 15px; background: var(--whatsapp); color: white;
+      font-size: 1.1rem; font-weight: bold; border-radius: 12px;
+      text-decoration: none; margin-top: 10px; transition: 0.3s; width: 100%;
+    }
+    .btn-buy-premium:hover { background: #1ebd57; transform: scale(1.02); }
+
+    .alias-text { margin-top: 10px; font-weight: bold; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px; }
+    .price-tag { margin-top: 5px; color: #2ecc71; font-weight: 800; font-size: 1.1rem; text-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+
+    /* --- JUEGO --- */
+    .tablero-wrapper { width: 100%; overflow-x: auto; padding: 15px 0; }
+    #tablero { display: grid; grid-template-columns: repeat(4, minmax(140px, 220px)); gap: 15px; justify-content: center; min-width: 620px; margin: 0 auto; }
+    .carta { aspect-ratio: 1; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
+    .carta.flipped { transform: rotateY(180deg); }
+    .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; border: 2px solid var(--accent); overflow: hidden; transition: border-color 0.4s; }
+    .face img { width: 100%; height: 100%; object-fit: contain; }
+    .front { transform: rotateY(180deg); background: rgba(255,255,255,0.05); }
+    .back { background: var(--secondary); }
+
+    .face.matched { border: 4px solid var(--match-color) !important; box-shadow: 0 0 15px var(--match-color); }
+
+    .points-float {
+      position: absolute; top: 50%; left: 50%; color: var(--accent);
+      font-weight: 900; font-size: 1.8rem; text-shadow: 2px 2px 8px #000;
+      pointer-events: none; z-index: 100; animation: float-up 1.2s forwards;
+    }
+    @keyframes float-up { 0% { opacity: 1; transform: translate(-50%, -50%) rotateY(180deg); } 100% { opacity: 0; transform: translate(-50%, -150%) rotateY(180deg); } }
+
+    .stat-box { border: 2px solid var(--primary); border-radius: 15px; padding: 10px; flex: 1; text-align: center; background: rgba(0,0,0,0.2); }
+    .btn { padding: 0.8rem 1.5rem; border-radius: 50px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
+    
+    #modal-victoria {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95); z-index: 6000; justify-content: center; align-items: center; text-align: center;
+    }
+    .confetti { position: fixed; width: 10px; height: 10px; z-index: 7000; top: -10px; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+    .ocultar { display: none !important; }
+  </style>
+</head>
+<body id="cuerpo">
+
+  <div class="audio-global">
+    <div class="visualizer" id="visualizer"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+    <button onclick="toggleMusic()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fa-solid fa-play" id="music-icon"></i></button>
+  </div>
+
+  <section id="overlay-inicio" class="view-section">
+    <div class="menu-inicio-card">
+      <img src="https://lh3.googleusercontent.com/d/16kPOn6omfFbjglvpe-9Bv_DAiLq0VONy" class="logo-inicio">
+      <h1>ANIMAL LEGENDS</h1>
+      
+      <div style="text-align:left; background:rgba(0,0,0,0.3); padding:12px; border-radius:15px; font-size: 0.8rem;">
+        <p style="color:var(--accent); font-weight:bold;">INSTRUCCIONES:</p>
+        <p>Encuentra las 2 LEYENDAS para ganar +3000P.</p>
+        <p>• Pares (500P) | • Leyendas (1500P c/u).</p>
+      </div>
+
+      <div class="world-list">
+        <div class="world free" onclick="iniciarMundo('hibrido')">🌍 Híbrido (FREE)</div>
+        <div class="world locked" id="lock-arena" onclick="validarAcceso('arena')">🏜 Arena <i class="fa-solid fa-lock"></i></div>
+        <div class="world locked" id="lock-hielo" onclick="validarAcceso('hielo')">❄ Hielo <i class="fa-solid fa-lock"></i></div>
+        <div class="world locked" id="lock-mistico" onclick="validarAcceso('mistico')">🌙 Místico <i class="fa-solid fa-lock"></i></div>
+      </div>
+
+      <a href="https://wa.me/5491162459363?text=Hola%20Animal%20Legends%20me%20interesa%20comprar%20el%20juego" target="_blank" class="btn-buy-premium">
+        <i class="fa-brands fa-whatsapp"></i> 💎 COMPRAR PREMIUM
+      </a>
+      
+      <div class="alias-text">ALIAS: evaiart</div>
+      <!-- OFERTA FULL GAME AGREGADA -->
+      <div class="price-tag">🔓 Full Game $4.999</div>
+    </div>
+  </section>
+
+  <section id="app" class="view-section">
+    <h1 id="titulo-mundo"></h1>
+    <div id="alerta-bonus" style="background:rgba(241,196,15,0.1); border:1px solid var(--accent); padding:10px; border-radius:10px; margin-bottom:15px; width:100%; max-width:650px; text-align:center; color:var(--accent); font-weight:bold; font-size:1.1rem;"></div>
+    <div style="display:flex; gap:10px; width:100%; max-width:600px; margin-bottom:15px;">
+      <div class="stat-box"><span id="val-tiempo">00:00</span><br><small>Tiempo</small></div>
+      <div class="stat-box"><span id="val-pares">0/8</span><br><small>Pares</small></div>
+      <div class="stat-box" style="border-color:var(--accent);"><span id="val-puntos">0</span><br><small>Puntos</small></div>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:1rem;">
+      <button class="btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="reiniciarPartida()">REINICIAR</button>
+      <button class="btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="volverMenu()">MENÚ</button>
+    </div>
+    <div class="tablero-wrapper"><div id="tablero"></div></div>
+  </section>
+
+  <div id="modal-victoria">
+    <div class="menu-inicio-card">
+      <h2 id="msg-felicitacion" style="color:var(--accent);"></h2>
+      <p id="stats-finales" style="margin: 2rem 0; white-space: pre-line;"></p>
+      <button class="btn" style="background:var(--primary); color:white; width:100%; margin-bottom:10px;" onclick="cerrarVictoriaYReiniciar()">REPETIR</button>
+      <button class="btn" style="background:rgba(255,255,255,0.1); color:#fff; width:100%;" onclick="volverMenu()">IR AL MENÚ</button>
+    </div>
+  </div>
+
+  <audio id="game-audio" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio>
+
+  <script>
+    const PASS_PREMIUM = "premium1800889999";
+    const audio = document.getElementById('game-audio');
+    let mundoActual = 'hibrido', leyendas = [], primera = null, segunda = null, bloqueado = false;
+    let paresEnc = 0, puntos = 0, tiempo = 0, cronoIdx;
+
+    const MUNDOS = {
+      hibrido: { titulo: "Mundo Híbrido", dorso: '1ewu_QyVQel-EWA5DHW93RYR6G9vJ2d6_', imagenes: { 'AGUILA': '1lSewG0HFoXu7pkuZnSfk3eYGXZpJyArl', 'CAMALEÓN': '1GuBzYluK2OUufoM7Zal4VrqfTDL4Pg-A', 'ELEFANTE': '18r503w24-xeY7ls8DjLW-H72OgRsiKIw', 'KOALA': '1OpGi0QGcZFPM6UIVV3ko9TQ8RuN0YNsB', 'LEON': '1u5Z2_06-8xEze1LVAEHPCc8QFiquNxXQ', 'ORANGUTAN': '1f-vHOk6wQivzLMiYardYVkgyiuZwEokk', 'OSO PANDA': '1LpsdXZ-jCMHXXSNYeNprG3NxLQtTZAiu', 'TIGRE': '17v_NxLVaJwEy9fnn3V2Y572BNn1UmpC_' } },
+      hielo: { titulo: "Mundo Hielo", dorso: '18y--weyWyTsT_SdAbMHcZuUJNBuWAWuI', imagenes: { 'BÚHO NIVAL': '1R8ABQMznCdExQs8D50_-BzNEngU1C-KN', 'GUARDIÁN FOCA': '1qJan5z_aQxgAEKV5iJ380AS1L98plnvs', 'LEOPARDO NIEVE': '1DIRrECXC7-X4IFt27Ko9cmzGD-UcZecF', 'MAMUT': '1uoMw2qE_sJKACPrG3weU24Joa0YLs3hN', 'OSO POLAR': '1unb5405SydYtd0biiV5UnJ532psHoEjX', 'PINGÜINO': '1NlBGIN6qDJFmN1Jo9JFrEIlFVJHHa8dH', 'RENO HIELO': '1wGg2nRf_UvX3PUQFNJxb0N7aEAOObJnD', 'ZORRO ARTICO': '1yRUqU4UXtUkhj4xIZwYz7T9T_Qny5o6G' } },
+      mistico: { titulo: "Mundo Místico", dorso: '1wTG7bhhxngqK5AxxZ46R0U4JYA8yY5vF', imagenes: { 'CABALLO ALAS': '1xJKOnD5qx5cQk0BRaDTNhX9ZwkVipmoP', 'CIERVO CRISTAL': '19zXECJXYeEqOsCEa9ckWyxAq2sncSSYC', 'DRAGON CELESTIAL': '1mI6JvjrLmt_kplY_jd3l0mG8Ap3EVAgr', 'FÉNIX DORADO': '1yYOdGqah2C4o0cBdDOpTYX3fxrAhvn9M', 'GRIFO REAL': '18Pu_iCN2ZSblqpWhSzUvDkDI-77wHHz9', 'KRAKEN ABISAL': '1MI-3s51c2g6SHxJMpK3898V4p6njnDQ9', 'PEGASO CELESTIAL': '18vXK6sbcuowx-dz-rd7YbjWztixwROVL', 'ZORRO 9 COLAS': '1AqWi8Wp_Xe6xFh0iybpXcLKiIUAEl2bj' } },
+      arena: { titulo: "Mundo Arena", dorso: '1rcqSG2LC0ijNhNf9Wqxm4sH2SolrfIeo', imagenes: { 'CAMELLO': '1qMhcykFYGr48RCeIWPlIQCWX-qLX5cZ1', 'ESCORPIÓN SOL': '1jCVGRJNc8ZLY01up-uezc-Ha0NTbYg_7', 'HALCÓN DUNAS': '1Zthkh9EysjaXr3WAsJFHgPMa9vHymCtM', 'JAGUAR SOLAR': '16I4LD56ivj5J3zx7-JnKE5fvThLw7-rL', 'LEON COLOSAL': '12RjyWWVy4SBrdjg3U1pWB4OXWKJ8oxSI', 'LOBO DUNAS': '1o81AyPFkRH09iYuGAAWgLmczedtxiiHn', 'RINOCERONTE SOL': '1liDXZtRqZ9fUtE_aYmCgbABe6WSlvIQu', 'SERPIENTE ARENA': '1RwYcPFnlxIepaNEI4p64j5bo_S4w-OTM' } }
+    };
+
+    window.onload = () => { if(localStorage.getItem("premiumOK") === "true") desbloquearUI(); };
+
+    function validarAcceso(m) {
+        if(localStorage.getItem("premiumOK") === "true") { iniciarMundo(m); return; }
+        const code = prompt("🌟 PREMIUM: Ingresa tu contraseña:");
+        if(code === PASS_PREMIUM) { localStorage.setItem("premiumOK", "true"); desbloquearUI(); iniciarMundo(m); }
+        else if(code !== null) window.open("https://wa.me/5491162459363", "_blank");
+    }
+
+    function desbloquearUI() { ['arena', 'hielo', 'mistico'].forEach(id => { const el = document.getElementById('lock-' + id); if(el) { el.classList.replace('locked', 'free'); el.querySelector('.fa-lock').remove(); } }); }
+
+    function iniciarMundo(m) {
+      mundoActual = m;
+      document.body.className = m === 'hielo' ? 'tema-hielo' : m === 'mistico' ? 'tema-mistico' : m === 'arena' ? 'tema-arena' : '';
+      document.getElementById('titulo-mundo').innerText = MUNDOS[m].titulo;
+      document.getElementById('overlay-inicio').classList.add('ocultar');
+      document.getElementById('app').style.display = 'flex';
+      reiniciarPartida();
+    }
+
+    function reiniciarPartida() {
+      puntos = 0; paresEnc = 0; tiempo = 0;
+      document.getElementById('val-puntos').innerText = "0";
+      document.getElementById('val-pares').innerText = "0/8";
+      const config = MUNDOS[mundoActual], keys = Object.keys(config.imagenes);
+      leyendas = [...keys].sort(() => 0.5 - Math.random()).slice(0, 2);
+      document.getElementById('alerta-bonus').innerHTML = `🌟 LEYENDAS: <span style="text-transform:uppercase">${leyendas[0]} Y ${leyendas[1]}</span>`;
+      const mazo = [...keys, ...keys].sort(() => 0.5 - Math.random());
+      const t = document.getElementById('tablero'); t.innerHTML = '';
+      mazo.forEach(id => {
+        const c = document.createElement('div'); c.className = 'carta'; c.dataset.id = id;
+        c.innerHTML = `<div class="face back"><img src="https://lh3.googleusercontent.com/d/${config.dorso}"></div>
+                       <div class="face front"><img src="https://lh3.googleusercontent.com/d/${config.imagenes[id]}"></div>`;
+        c.onclick = () => voltear(c); t.appendChild(c);
+      });
+      clearInterval(cronoIdx); cronoIdx = setInterval(() => { tiempo++; let m = Math.floor(tiempo / 60).toString().padStart(2, '0'), s = (tiempo % 60).toString().padStart(2, '0'); document.getElementById('val-tiempo').innerText = `${m}:${s}`; }, 1000);
+    }
+
+    function voltear(c) {
+      if(bloqueado || c === primera || c.classList.contains('flipped')) return;
+      c.classList.add('flipped');
+      if(!primera) return primera = c;
+      segunda = c; bloqueado = true;
+      if(primera.dataset.id === segunda.dataset.id) {
+        paresEnc++; const val = leyendas.includes(primera.dataset.id) ? 1500 : 500; puntos += val;
+        const float = document.createElement('div'); float.className = 'points-float'; float.innerText = `+${val}P`;
+        segunda.appendChild(float);
+        [primera, segunda].forEach(card => card.querySelectorAll('.face').forEach(f => f.classList.add('matched')));
+        setTimeout(() => { primera = segunda = null; bloqueado = false; if(paresEnc === 8) finalizarJuego(); }, 300);
+        document.getElementById('val-pares').innerText = `${paresEnc}/8`; document.getElementById('val-puntos').innerText = puntos;
+      } else {
+        setTimeout(() => { [primera, segunda].forEach(card => card.classList.remove('flipped')); primera = segunda = null; bloqueado = false; }, 700);
+      }
+    }
+
+    function finalizarJuego() { 
+        clearInterval(cronoIdx); lanzarConfeti();
+        const modal = document.getElementById('modal-victoria');
+        document.getElementById('msg-felicitacion').innerText = tiempo < 60 ? "¡TIEMPO RÉCORD!" : "¡LO LOGRASTE!";
+        document.getElementById('stats-finales').innerText = `Tiempo: ${tiempo}s | Puntos: ${puntos}P`;
+        modal.style.display = 'flex';
+    }
+
+    function volverMenu() { clearInterval(cronoIdx); document.getElementById('modal-victoria').style.display = 'none'; document.getElementById('app').style.display = 'none'; document.getElementById('overlay-inicio').classList.remove('ocultar'); }
+    function cerrarVictoriaYReiniciar() { document.getElementById('modal-victoria').style.display = 'none'; reiniciarPartida(); }
+    function toggleMusic() { const icon = document.getElementById('music-icon'), viz = document.getElementById('visualizer'); if (audio.paused) { audio.play(); icon.className = "fa-solid fa-pause"; viz.classList.add('animating'); } else { audio.pause(); icon.className = "fa-solid fa-play"; viz.classList.remove('animating'); } }
+    function lanzarConfeti() { const col = ['#f1c40f', '#e94560', '#2ecc71', '#00d2ff']; for (let i = 0; i < 80; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw'; c.style.backgroundColor = col[Math.floor(Math.random() * col.length)]; c.style.animationDuration = (Math.random() * 2 + 1) + 's'; document.body.appendChild(c); setTimeout(() => c.remove(), 3000); } }
+  </script>
+</body>
+</html>
