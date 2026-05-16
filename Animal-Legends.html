@@ -119,6 +119,7 @@
 
       <div class="world-list">
         <div class="world free" onclick="iniciarMundo('hibrido')">🌍 Híbrido (FREE)</div>
+        <div class="world locked" id="lock-puzzle" onclick="validarAccesoPuzzle()">🧩 Puzzle Legends <i class="fa-solid fa-lock"></i></div>
         <div class="world locked" id="lock-arena" onclick="validarAcceso('arena')">🏜 Arena <i class="fa-solid fa-lock"></i></div>
         <div class="world locked" id="lock-hielo" onclick="validarAcceso('hielo')">❄ Hielo <i class="fa-solid fa-lock"></i></div>
         <div class="world locked" id="lock-mistico" onclick="validarAcceso('mistico')">🌙 Místico <i class="fa-solid fa-lock"></i></div>
@@ -129,7 +130,6 @@
       </a>
       
       <div class="alias-text">ALIAS: evaiart</div>
-      <!-- OFERTA FULL GAME AGREGADA -->
       <div class="price-tag">🔓 Full Game $4.999</div>
     </div>
   </section>
@@ -182,7 +182,17 @@
         else if(code !== null) window.open("https://wa.me/5491162459363", "_blank");
     }
 
-    function desbloquearUI() { ['arena', 'hielo', 'mistico'].forEach(id => { const el = document.getElementById('lock-' + id); if(el) { el.classList.replace('locked', 'free'); el.querySelector('.fa-lock').remove(); } }); }
+    // NUEVA FUNCIÓN PARA REDIRECCIÓN DE PUZZLE
+    function validarAccesoPuzzle() {
+        if(localStorage.getItem("premiumOK") === "true") { window.open("https://estanis2025.github.io/EVIAGAMES/animallegendspuzzlegame.html", "_blank"); return; }
+        const code = prompt("🌟 PREMIUM: Ingresa tu contraseña:");
+        if(code === PASS_PREMIUM) { localStorage.setItem("premiumOK", "true"); desbloquearUI(); window.open("https://estanis2025.github.io/EVIAGAMES/animallegendspuzzlegame.html", "_blank"); }
+        else if(code !== null) window.open("https://wa.me/5491162459363", "_blank");
+    }
+
+    function desbloquearUI() { 
+        ['arena', 'hielo', 'mistico', 'puzzle'].forEach(id => { const el = document.getElementById('lock-' + id); if(el) { el.classList.replace('locked', 'free'); const lockIcon = el.querySelector('.fa-lock'); if(lockIcon) lockIcon.remove(); } }); 
+    }
 
     function iniciarMundo(m) {
       mundoActual = m;
